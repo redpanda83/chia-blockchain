@@ -1971,9 +1971,7 @@ class FullNode:
             # guaranteed to represent a successful run
             assert npc_result.conds is not None
             pairs_pks, pairs_msgs = pkm_pairs(npc_result.conds, self.constants.AGG_SIG_ME_ADDITIONAL_DATA)
-            if not LOCAL_CACHE.aggregate_verify(
-                pairs_pks, pairs_msgs, block.transactions_info.aggregated_signature, True
-            ):
+            if not LOCAL_CACHE.aggregate_verify(pairs_pks, pairs_msgs, block.transactions_info.aggregated_signature):
                 raise ConsensusError(Err.BAD_AGGREGATE_SIGNATURE)
 
         async with self.blockchain.priority_mutex.acquire(priority=BlockchainMutexPriority.high):

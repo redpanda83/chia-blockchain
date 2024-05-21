@@ -55,7 +55,7 @@ MEMPOOL_MIN_FEE_INCREASE = uint64(10000000)
 # the constants through here
 def validate_clvm_and_signature(
     spend_bundle_bytes: bytes, max_cost: int, constants: ConsensusConstants, height: uint32
-) -> Tuple[Optional[Err], bytes, List[Tuple[bytes32, bytes]], float]:
+) -> Tuple[Optional[Err], bytes, List[Tuple[bytes, bytes]], float]:
     """
     Validates CLVM and aggregate signature for a spendbundle. This is meant to be called under a ProcessPoolExecutor
     in order to validate the heavy parts of a transaction in a different thread. Returns an optional error,
@@ -83,9 +83,9 @@ def validate_clvm_and_signature(
 
         # Verify aggregated signature
         cache = BLSCache(10000)
-        if not cache.aggregate_verify(pks, msgs, bundle.aggregated_signature, True):
+        if not cache.aggregate_verify(pks, msgs, bundle.aggregated_signature):
             return Err.BAD_AGGREGATE_SIGNATURE, b"", [], time.monotonic() - start_time
-        new_cache_entries: List[Tuple[bytes32, bytes]] = cache.items()
+        new_cache_entries: List[Tuple[bytes, bytes]] = cache.items()
     except ValidationError as e:
         return e.code, b"", [], time.monotonic() - start_time
     except Exception:

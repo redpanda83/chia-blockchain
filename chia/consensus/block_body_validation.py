@@ -5,7 +5,7 @@ import logging
 from dataclasses import dataclass, field
 from typing import Awaitable, Callable, Dict, List, Optional, Set, Tuple, Union
 
-from chia_rs import G1Element
+from chia_rs import AugSchemeMPL, G1Element
 from chiabip158 import PyBIP158
 
 from chia.consensus.block_record import BlockRecord
@@ -530,10 +530,11 @@ async def validate_block_body(
     # as the cache is likely to be useful when validating the corresponding
     # finished blocks later.
     if validate_signature:
-        force_cache: bool = isinstance(block, UnfinishedBlock)
-        if not LOCAL_CACHE.aggregate_verify(
-            pairs_pks, pairs_msgs, block.transactions_info.aggregated_signature, force_cache
-        ):
-            return Err.BAD_AGGREGATE_SIGNATURE, None
+        if isinstance(block, UnfinishedBlock):
+            if not LOCAL_CACHE.aggregate_verify(pairs_pks, pairs_msgs, block.transactions_info.aggregated_signature):
+                return Err.BAD_AGGREGATE_SIGNATURE, None
+        else:
+            if not AugSchemeMPL.aggregate_verify(pairs_pks, pairs_msgs, block.transactions_info.aggregated_signature):
+                return Err.BAD_AGGREGATE_SIGNATURE, None
 
     return None, npc_result
